@@ -6,15 +6,34 @@
 #pragma hdrstop
 
 struct Graph {int numberofvertex, numberofreb; int **mas; int *masnum; int *connection;} *graph;
+void run_testcase(const char*);
+Graph *load_graph(const char*);
 void Check(int, Graph*);
 //---------------------------------------------------------------------------
 
 #pragma argsused
 int main(int argc, char* argv[])
 {
+        run_testcase("graph1.txt");
+}
+
+getch();                        //getch ПОТОМ УБРАТЬ!!!!!!!!!!!!!!!!!!!!!!!
+        return 0;
+}
+
+void run_testcase(const char *path){
+        Graph *graph;
+        graph=load_graph(path);
+        show_graph(graph);
+        Answer(graph);
+        Delete_graphs(graph);
+}
+
+Graph *load_graph(const char *path)
+{
 FILE *f;
 int answer=1, a, b;
-if(f=fopen("1.in", "rb")){
+if(f=fopen(path, "rb")){
         graph=new Graph;
         fscanf(f ,"%i", &graph->numberofvertex); //считывание кол-ва вершин
         fscanf(f ,"%i", &graph->numberofreb); //считывание кол-ва рёбер
@@ -37,16 +56,19 @@ if(f=fopen("1.in", "rb")){
                 }
         }
         fclose(f);
-        cout<<endl;
+        //cout<<endl;
         //for(int i=1; i<graph->numberofvertex+1; i++){ //ВЫВОД ГРАФА
                 //cout<<i<<"->";
                 //for(int j=1; j<=graph->masnum[i]; j++) cout<<" "<<graph->mas[i][j];
                 //cout<<endl;
         //}
 }
-else cout<<"ERROR!";
-getch();                        //getch ПОТОМ УБРАТЬ!!!!!!!!!!!!!!!!!!!!!!!
-        return 0;
+else{
+        printf("Error: Cannot open file '%s'.\n", path);
+        getch();
+        exit(1);
+}
+return graph;
 }
 
 void Check(int i, Graph *graph) //рекурсивная функция, которая записывает все вершины, которые связаны с вершиной 1 хотябы одним путём
@@ -68,4 +90,6 @@ int n;
                 }
         }
 }
+
+
 //---------------------------------------------------------------------------
