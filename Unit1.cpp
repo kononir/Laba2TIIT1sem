@@ -5,73 +5,102 @@
 #include <iostream.h>
 #pragma hdrstop
 
-struct Graph {int numberofvertex, numberofreb; int **mas; int *masnum; int *connection;} *graph;
-void run_testcase(const char*);
-Graph *load_graph(const char*);
+struct Graph {int numberofvertex, numberofreb; int **mas; int *masnum; int *connection; int *bridge; int *cutvertex;} *graph;
+void run_testcase(char*, char*);
+Graph *load_graph(char*);
 void Check(int, Graph*);
+void Delete_graphs(Graph*);
+void Answer(Graph*);
 //---------------------------------------------------------------------------
 
 #pragma argsused
 int main(int argc, char* argv[])
 {
-        run_testcase("graph1.txt");
-}
-
+        char name[6], number[2];
+        for(int num=1; num<=16; num++){
+                itoa(num, number, 10);
+                strcpy(name, number);
+                strcat(name, ".in");
+                run_testcase(number, name);
+        }
 getch();                        //getch ПОТОМ УБРАТЬ!!!!!!!!!!!!!!!!!!!!!!!
         return 0;
 }
 
-void run_testcase(const char *path){
+void run_testcase(char *number, char *path)
+{
         Graph *graph;
         graph=load_graph(path);
-        show_graph(graph);
-        Answer(graph);
+        //Answer(number, graph);
         Delete_graphs(graph);
 }
 
-Graph *load_graph(const char *path)
+Graph *load_graph(char *path)
 {
 FILE *f;
 int answer=1, a, b;
-if(f=fopen(path, "rb")){
-        graph=new Graph;
-        fscanf(f ,"%i", &graph->numberofvertex); //считывание кол-ва вершин
-        fscanf(f ,"%i", &graph->numberofreb); //считывание кол-ва рёбер
-        //cout<<numberofvertex<<endl<<numberofreb<<endl; //ВЫВОД КОЛ-ВА ВЕРШИН И РЁБЕР
-        graph->mas=new int*[graph->numberofvertex+1];
-        graph->masnum=new int[graph->numberofvertex+1];
-        for(int i=1; i<graph->numberofvertex+1; i++){
-                graph->mas[i]=new int[graph->numberofvertex];
-                graph->masnum[i]=0; //заполняем массив кол-ва смежных данной вершине вершин нулями
-        }
-        while(answer>0){ //считывание рёбер(вершин)
-                answer=fscanf(f ,"%i", &a);
-                fscanf(f ,"%i", &b);
-                if(answer>0){
-                        graph->masnum[a]++;
-                        graph->masnum[b]++;
-                        graph->mas[a][graph->masnum[a]]=b;
-                        graph->mas[b][graph->masnum[b]]=a;
+        if(f=fopen(path, "rb")){
+                graph=new Graph;
+                fscanf(f ,"%i", &graph->numberofvertex); //считывание кол-ва вершин
+                fscanf(f ,"%i", &graph->numberofreb); //считывание кол-ва рёбер
+                //cout<<graph->numberofvertex<<endl<<graph->numberofreb<<endl; //ВЫВОД КОЛ-ВА ВЕРШИН И РЁБЕР
+                graph->mas=new int*[graph->numberofvertex+1];
+                graph->masnum=new int[graph->numberofvertex+1];
+                for(int i=1; i<graph->numberofvertex+1; i++){
+                        graph->mas[i]=new int[graph->numberofvertex];
+                        graph->masnum[i]=0; //заполняем массив кол-ва смежных данной вершине вершин нулями
+                }
+                while(answer>0){ //считывание рёбер(вершин)
+                        answer=fscanf(f ,"%i", &a);
+                        fscanf(f ,"%i", &b);
+                        if(answer>0){
+                                graph->masnum[a]++;
+                                graph->masnum[b]++;
+                                graph->mas[a][graph->masnum[a]]=b;
+                                graph->mas[b][graph->masnum[b]]=a;
                         //cout<<a<<" "<<b<<endl;
+                        }
+                }
+                fclose(f);
+                cout<<endl;
+                //for(int i=1; i<graph->numberofvertex+1; i++){ //ВЫВОД ГРАФА
+                        //cout<<i<<"->";
+                        //for(int j=1; j<=graph->masnum[i]; j++) cout<<" "<<graph->mas[i][j];
+                        //cout<<endl;
+                //}
+        }
+        else{
+                printf("Error: Cannot open file '%s'.\n", path);
+                getch();
+                exit(1);
+        }
+        return graph;
+}
+Answer(char *number, Graph *graph)
+{
+        int reb=1;
+        char name[6];
+        strcat(name, number);
+        //f=fopen(name, "wb");
+        graph->bridge=new int[graph->numberofreb];
+        graph->bridge[0]=0;
+        graph->cutvertex=new int[graph->numberofvertex-2+1];
+        graph->cutvertex[0]=0;
+        for(int i=1; i<graph->numberofvertex+1; i++){
+                if(graph->masnum[i]==1){
+                        graph->bridge[0]++;
+                        graph->bridge[graph->bridge[0]]=reb;
+                        reb++;
+                        continue;
+                }
+                else{
+                        
                 }
         }
-        fclose(f);
-        //cout<<endl;
-        //for(int i=1; i<graph->numberofvertex+1; i++){ //ВЫВОД ГРАФА
-                //cout<<i<<"->";
-                //for(int j=1; j<=graph->masnum[i]; j++) cout<<" "<<graph->mas[i][j];
-                //cout<<endl;
-        //}
+                        //fprintf()
+                        //Выводим это ребро
 }
-else{
-        printf("Error: Cannot open file '%s'.\n", path);
-        getch();
-        exit(1);
-}
-return graph;
-}
-
-void Check(int i, Graph *graph) //рекурсивная функция, которая записывает все вершины, которые связаны с вершиной 1 хотябы одним путём
+void Check(int i, int m, Graph *graph) //рекурсивная функция, которая записывает все вершины, которые связаны с вершиной 1 хотябы одним путём
 {
 int n;
         for(int j=0; j<graph->masnum[i]; j++){ //все смежные данной вершине вершины
@@ -86,10 +115,17 @@ int n;
                 if(n==graph->connection[0]){ //если такой номер не найден, то записываем его в массив
                         graph->connection[0]++; //то увеличиваем кол-во элементов вершин, связаных с вершиной 1 хотябы одним путём
                         graph->connection[graph->connection[0]]=graph->mas[i][j]; //добавляем номер этой вершины в массив
-                        Check(graph->mas[i][j], graph); //продолжаем поиск вершин (берём смежную данной вершине вершину)
+                        Check(graph->mas[i][j], m, graph); //продолжаем поиск вершин (берём смежную данной вершине вершину)
                 }
+
         }
 }
 
-
+void Delete_graphs(Graph *graph) //удаление графа и вспомогательных массивов
+{
+        for(int i=1;i<graph->numberofvertex+1;i++) delete graph->mas[i];
+        delete graph->mas;
+        delete graph->connection;
+        delete graph;
+}
 //---------------------------------------------------------------------------
